@@ -39,7 +39,7 @@ groupByState <- function(dt, Index, state) {
   result<-head(result,100)
   return(result)
 }
-# x<-groupByState(outcome,"Heart Attack",c("AL","AR"))
+#re x<-groupByState(outcome,"Heart Attack",c("AL","AR"))
 #x$relative<-x$value-mean(x$value)
 
 # Take relative value of mortality rate, given the state selected
@@ -75,4 +75,4 @@ plotGroupByState <- function(dt,  dom= "hospitalByMortality",
 # Deploy to shinyApp
 #library(shinyapps)
 #shinyapps::deployApp('~/Documents/## Github Repo/Data-Product')
-
+#runApp(display.mode = "showcase")

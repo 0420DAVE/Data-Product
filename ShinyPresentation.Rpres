@@ -1,0 +1,107 @@
+Presentation on US Hospital Comparater
+========================================================
+author: Li Ying
+date: 2015/06/21
+transition: rotate
+
+<small> 
+Department of Psychology   
+The University of Warwick  
+</small>
+
+
+Data Source
+========================================================
+- This shiny app is named US Hospital Comparater. It is used for direct comparison among all US hospitals in terms of their mortality rate in three domains: heart attack, heart failure, and pneumonia.
+   - The data is downloaded from https://d396qusza40orc.cloudfront.net/rprog%2Fdata%2FProgAssignment3-data.zip
+   - You find Hospital Compare data on data.medicare.gov. This website allows
+you to view the data files embedded on a webpage without downloading
+them. The data on data.medicare.gov can usually be viewed the same day
+it has been updated on Hospital Compare. Use data.medicare.gov to
+customize views and filter the Hospital Compare data.
+
+Variable
+====================================
+```{r,result=T,echo=FALSE,fig.width=26, fig.height=26}
+
+library(data.table)
+library(ggplot2)
+library(reshape)
+library(DT)
+library(rCharts)
+
+outcome <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+outcome<-outcome[,c(1:11,17,23)]
+# Delete empty column
+outcome<-outcome[,-c(4,5)]
+outcome[,9:11]<-sapply(outcome[,9:11],as.numeric)
+outcome<-data.table(outcome)
+
+setnames(outcome, "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack", "Heart Attack")
+setnames(outcome, "Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure", "Heart Failure")
+setnames(outcome, "Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia", "Pneumonia")
+
+# Explore the data set
+names<-names(outcome);names
+table(sapply(outcome,class))
+
+state <- sort(unique(outcome$State))
+
+# Reshape data.table
+outcome<-melt(outcome,id=1:8,measure=9:11)
+outcome$value[outcome$value=="Not Available"]<-NA
+
+outcome$variable<-as.character(outcome$variable)
+```
+
+Sample Output: Table (display top5)
+========================================================
+Input Select:
+
+- State:AL, AR
+- Domain:Heart Attack
+
+```{r, echo=FALSE,cache=TRUE}
+groupByState <- function(dt, Index, state) {
+  result <- subset(dt,variable %in% Index & State %in% state) 
+  result<-result[order(result$value),]
+  result<-na.omit(result)
+  result<-head(result,100)
+  return(result)
+}
+
+x<-groupByState(outcome,"Heart Attack",c("AL","AR"))
+head(x[,2],5)
+```
+
+Sample Output: Figure (display top5)
+========================================================
+
+```{r, echo=FALSE,cache=TRUE}
+groupByState <- function(dt, Index, state) {
+  result <- subset(dt,variable %in% Index & State %in% state) 
+  result<-result[order(result$value),]
+  result<-na.omit(result)
+  result<-head(result,100)
+  return(result)
+}
+relative <- function(dt, Index,state) {
+  dt <- groupByState(dt, Index, state) 
+
+  result<-data.frame(dt,relative=dt$value-mean(dt$value))
+  return(result)
+}
+x<-groupByState(outcome,"Heart Attack",c("AL","AR"))
+y<-relative(x,"Heart Attack",c("AL","AR"))
+
+# Plot groupByState
+par(mar = c(7, 4, 2, 2) + 0.2)
+barplot(y$relative[1:10],col="steelblue",ylim = c(-5,-1))
+text(seq(1.5,21.5,by=2), par("usr")[3]-0.25, 
+     srt = 60, adj= 1, xpd = TRUE,
+     labels = paste(y$Hospital.Name[1:10]), cex=0.65)
+```
+
+Thanks You
+===
+type: section
